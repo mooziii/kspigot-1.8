@@ -1,0 +1,156 @@
+package net.axay.kspigot.extensions.bukkit
+
+import net.axay.kspigot.annotations.NMS_General
+import net.axay.kspigot.extensions.onlinePlayers
+import net.axay.kspigot.pluginmessages.PluginMessageConnect
+import net.minecraft.server.v1_8_R3.ChatComponentText
+import net.minecraft.server.v1_8_R3.PacketPlayOutChat
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer
+import org.bukkit.entity.*
+import org.bukkit.inventory.ItemStack
+
+
+/**
+ * Checks if the entities' head is in water.
+ */
+val LivingEntity.isHeadInWater: Boolean get() = this.eyeLocation.block.type == Material.WATER
+
+/**
+ * Checks if the entities' feet are in water.
+ */
+val Entity.isFeetInWater: Boolean get() = this.location.block.type == Material.WATER
+
+/**
+ * Checks if the entity stands on solid ground.
+ */
+val Entity.isGroundSolid: Boolean get() = this.location.add(0.0, -0.01, 0.0).block.type.isSolid
+
+/**
+ * Returns the material that is present under the feet of this entity.
+ */
+val Entity.groundMaterial get() = this.location.add(0.0, -0.01, 0.0).block.type
+
+/**
+ * Kills the damageable.
+ */
+fun Damageable.kill() {
+    health = 0.0
+}
+
+/**
+ * Sets the entities' health to the max possible value.
+ * @throws NullPointerException if the entity does not have a max health value
+ */
+fun LivingEntity.heal() {
+    health = maxHealth
+}
+
+/**
+ * Sets the players' foodLevel to the
+ * max possible value.
+ */
+fun Player.feed() {
+    foodLevel = 20
+}
+
+/**
+ * Sets the players' saturation to the
+ * current max possible value.
+ */
+fun Player.saturate() {
+    saturation = foodLevel.toFloat()
+}
+
+/**
+ * Feeds and saturates the player.
+ */
+fun Player.feedSaturate() {
+    foodLevel = 20
+    saturation = 20f
+}
+
+/**
+ * Hides the player for all [onlinePlayers].
+ */
+fun Player.disappear() {
+    onlinePlayers.filter { it != this }.forEach { it.hidePlayer(this) }
+}
+
+/**
+ * Shows the player for all [onlinePlayers].
+ */
+fun Player.appear() {
+    onlinePlayers.filter { it != this }.forEach { it.showPlayer(this) }
+}
+
+/**
+ * Hides all online players from this player.
+ */
+fun Player.hideOnlinePlayers() {
+    onlinePlayers.filter { it != this }.forEach { this.hidePlayer(it) }
+}
+
+/**
+ * Shows all online players to this player.
+ */
+fun Player.showOnlinePlayers() {
+    onlinePlayers.filter { it != this }.forEach { this.showPlayer(it) }
+}
+
+/**
+ * Kicks the player from the server.
+ */
+fun Player.kick(reason: String? = "You got kicked!") {
+    kickPlayer(reason)
+}
+
+/**
+ * Spawns an entity without any variations in color, type etc...
+ */
+@NMS_General
+fun Location.spawnCleanEntity(entityType: EntityType): Entity? {
+    val craftWorld = world as? CraftWorld ?: return null
+    return craftWorld.createEntity(this, entityType.entityClass)?.let {
+        craftWorld.handle.addEntity(it)
+        return@let it.bukkitEntity
+    }
+}
+
+/**
+ * @param mainText title text
+ * @param subText subtitle text
+ * @param fadeIn time in ticks for titles to fade in
+ * @param stay time in ticks for titles to stay
+ * @param fadeOut time in ticks for titles to fade out
+ */
+fun Player.title(
+    mainText: String? = null,
+    subText: String? = null
+) {
+    sendTitle(mainText, subText)
+}
+
+/**
+ * Sends the given [text] as an action bar message.
+ */
+fun Player.actionBar(text: String) {
+    val packet = PacketPlayOutChat(ChatComponentText(text), 2.toByte())
+    (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
+}
+
+/**
+ * Sends the player to the given server in the
+ * BungeeCord network.
+ */
+fun Player.sendToServer(servername: String) {
+    PluginMessageConnect(servername).sendWithPlayer(this)
+}
+
+/**
+ * Adds the given ItemStacks to the player's inventory.
+ * @return The items that did not fit into the player's inventory.
+ */
+fun Player.give(vararg itemStacks: ItemStack) = inventory.addItem(*itemStacks)

@@ -1,0 +1,10 @@
+# project
+.idea/
+build/
+.gradle/
+
+# not needed yet
+src/test/
+
+# not needed
+logs/
