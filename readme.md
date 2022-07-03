@@ -31,3 +31,5 @@ Dependency:
 ```kt
 implementation("net.axay:kspigot:1.8")
 ```
+
+THIS WONT RECEIVE UPDATES AT ALL.
