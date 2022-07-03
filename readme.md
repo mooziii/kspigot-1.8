@@ -1,6 +1,9 @@
-# KSpigot
+# legacy-kspigot
+
+This is a backport of [KSpigot](https://github.com/jakobkmar/KSpigot) to minecraft 1.8.8
 
 ⚠️ **I highly recommend to not use 1.8.8 at all** ⚠️
+**Use the modern versions of minecraft instead**
 
 ![Latest version](https://img.shields.io/badge/latest%20version-1.8.0-pink?style=for-the-badge)
 
